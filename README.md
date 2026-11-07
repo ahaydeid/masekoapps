@@ -11,3 +11,4 @@ Aplikasi web mobile-first pemantauan stok gudang dan daftar harga produk terinte
 npm install
 npm run dev
 ```
+

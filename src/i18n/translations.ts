@@ -48,6 +48,8 @@ export interface Dictionary {
   detail: {
     back: string;
     notFound: string;
+    zoomImage: string;
+    closeModal: string;
   };
   common: {
     clearSearch: string;
@@ -110,6 +112,8 @@ export const TRANSLATIONS: Record<Language, Dictionary> = {
     detail: {
       back: 'Kembali',
       notFound: 'Data tidak ditemukan',
+      zoomImage: 'Perbesar gambar',
+      closeModal: 'Tutup',
     },
     common: {
       clearSearch: 'Hapus pencarian',
@@ -170,6 +174,8 @@ export const TRANSLATIONS: Record<Language, Dictionary> = {
     detail: {
       back: '返回',
       notFound: '未找到该产品',
+      zoomImage: '放大图片',
+      closeModal: '关闭',
     },
     common: {
       clearSearch: '清除搜索',

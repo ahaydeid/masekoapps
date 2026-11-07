@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
+import { ImageModal } from '../components/ui/ImageModal';
 import { ProductThumb } from '../components/ui/ProductThumb';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { useAppContext } from '../context/useAppContext';
@@ -8,6 +10,7 @@ import { formatNumber, formatRupiah } from '../utils/format';
 export function ProductDetailPage() {
   const { noSeri } = useParams<{ noSeri: string }>();
   const { products, dict } = useAppContext();
+  const [isImageOpen, setIsImageOpen] = useState(false);
 
   const decodedSku = noSeri ? decodeURIComponent(noSeri) : '';
   const product = products.find((item) => item.noSeri === decodedSku);
@@ -31,6 +34,8 @@ export function ProductDetailPage() {
             alt={product.namaProduk}
             fallbackText={product.noSeri}
             size="lg"
+            onClick={() => setIsImageOpen(true)}
+            actionLabel={dict.detail.zoomImage}
           />
 
           <div className="space-y-2">
@@ -114,6 +119,15 @@ export function ProductDetailPage() {
           {product.komentar || '-'}
         </p>
       </Card>
+
+      {isImageOpen && product.gambar && (
+        <ImageModal
+          src={product.gambar}
+          alt={product.namaProduk}
+          closeLabel={dict.detail.closeModal}
+          onClose={() => setIsImageOpen(false)}
+        />
+      )}
     </div>
   );
 }
