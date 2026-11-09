@@ -102,3 +102,86 @@ export async function fetchProducts(): Promise<Product[]> {
     .map(normalizeRow)
     .filter((item): item is Product => item !== null);
 }
+
+// ==========================================
+// CRUD API Service ke Google Apps Script (doPost)
+// ==========================================
+
+export async function saveProductApi(
+  product: Product,
+  action: 'create' | 'update'
+): Promise<void> {
+  const apiUrl = import.meta.env.VITE_GAS_API_URL?.trim();
+  if (!apiUrl) {
+    throw new Error('VITE_GAS_API_URL belum diatur di Environment Variables.');
+  }
+
+  const payload = {
+    action,
+    product: {
+      gambar: product.gambar,
+      no_seri: product.noSeri,
+      nama_produk: product.namaProduk,
+      spesifikasi_produk: product.spesifikasiProduk,
+      jumlah: product.jumlah,
+      satuan: product.satuan,
+      pcs_box: product.pcsBox,
+      pcs_pack: product.pcsPack,
+      harga_satuan: product.hargaSatuan,
+      jenis_kabel: product.jenisKabel,
+      komentar: product.komentar,
+    },
+  };
+
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8',
+    },
+    body: JSON.stringify(payload),
+    redirect: 'follow',
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} saat menyimpan produk.`);
+  }
+
+  const resJson: unknown = await response.json();
+  const status = (resJson as { status?: string })?.status;
+  if (status !== 'success') {
+    const errorMsg = (resJson as { message?: string })?.message || 'Gagal menyimpan produk.';
+    throw new Error(errorMsg);
+  }
+}
+
+export async function deleteProductApi(noSeri: string): Promise<void> {
+  const apiUrl = import.meta.env.VITE_GAS_API_URL?.trim();
+  if (!apiUrl) {
+    throw new Error('VITE_GAS_API_URL belum diatur di Environment Variables.');
+  }
+
+  const payload = {
+    action: 'delete',
+    no_seri: noSeri,
+  };
+
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8',
+    },
+    body: JSON.stringify(payload),
+    redirect: 'follow',
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} saat menghapus produk.`);
+  }
+
+  const resJson: unknown = await response.json();
+  const status = (resJson as { status?: string })?.status;
+  if (status !== 'success') {
+    const errorMsg = (resJson as { message?: string })?.message || 'Gagal menghapus produk.';
+    throw new Error(errorMsg);
+  }
+}
