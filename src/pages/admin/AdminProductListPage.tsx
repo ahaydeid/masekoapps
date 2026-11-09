@@ -189,11 +189,11 @@ export function AdminProductListPage() {
         </Card>
       ) : (
         /* Kontainer Tabel Flat Full Width dengan Zebra Tipis & Tanpa Border Antar Baris */
-        <div className="w-full bg-white rounded-2xl shadow-xs overflow-hidden">
+        <div className="w-full bg-white rounded shadow-xs overflow-hidden">
           <div className="w-full overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <tr className="text-sm font-bold bg-slate-200/70 text-slate-500 uppercase tracking-wider">
                   <th className="py-3 px-4 w-14 font-medium">Foto</th>
                   <th className="py-3 px-4 font-medium">No Seri</th>
                   <th className="py-3 px-4 min-w-[240px] font-medium">Nama Produk</th>
@@ -208,7 +208,7 @@ export function AdminProductListPage() {
                 {paginatedProducts.map((product) => (
                   <tr
                     key={product.noSeri}
-                    className="even:bg-slate-50/60 hover:bg-slate-100/60 transition-colors"
+                    className="even:bg-slate-100/70 hover:bg-slate-100/60 transition-colors"
                   >
                     {/* Foto */}
                     <td className="py-2.5 px-4 font-normal">

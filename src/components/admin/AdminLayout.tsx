@@ -18,7 +18,7 @@ export function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-700 flex">
+    <div className="min-h-screen bg-slate-50 text-slate-700 flex">
       {/* Sidebar Persistent Terbuka */}
       <AdminSidebar
         isOpenMobile={mobileSidebarOpen}
