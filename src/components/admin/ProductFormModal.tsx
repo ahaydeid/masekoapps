@@ -24,6 +24,41 @@ interface ProductFormModalProps {
   onSave: (product: Product) => void;
 }
 
+function compressImage(file: File, maxDim = 800, quality = 0.8): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(reader.result as string);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export function ProductFormModal({
   isOpen,
   initialProduct,
@@ -58,6 +93,7 @@ function ProductFormModalContent({
 
   const [formData, setFormData] = useState<Product>(() => initialProduct ?? EMPTY_FORM_DATA);
   const [imagePreview, setImagePreview] = useState<string>(() => initialProduct?.gambar ?? '');
+  const [isCompressing, setIsCompressing] = useState(false);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -89,15 +125,26 @@ function ProductFormModalContent({
     }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    try {
+      setIsCompressing(true);
+      const compressedBase64 = await compressImage(file, 800, 0.8);
+      setImagePreview(compressedBase64);
+      setFormData((prev) => ({ ...prev, gambar: compressedBase64 }));
+    } catch {
+      // Fallback: baca langsung jika kompresi gagal
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-        setFormData((prev) => ({ ...prev, gambar: reader.result as string }));
+        const res = (reader.result as string) || '';
+        setImagePreview(res);
+        setFormData((prev) => ({ ...prev, gambar: res }));
       };
       reader.readAsDataURL(file);
+    } finally {
+      setIsCompressing(false);
     }
   };
 
@@ -154,9 +201,13 @@ function ProductFormModalContent({
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-                className="block w-full text-xs font-normal text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-normal file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer"
+                disabled={isSaving || isCompressing}
+                className="block w-full text-xs font-normal text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-normal file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer disabled:opacity-50"
               />
-              {imagePreview && (
+              {isCompressing && (
+                <p className="text-xs text-sky-600 animate-pulse">Mengoptimalkan ukuran foto...</p>
+              )}
+              {imagePreview && !isCompressing && (
                 <div className="w-30 h-30 rounded-lg overflow-hidden flex items-center justify-center">
                   <img
                     src={imagePreview}
@@ -318,7 +369,7 @@ function ProductFormModalContent({
           <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
             <button
               type="button"
-              disabled={isSaving}
+              disabled={isSaving || isCompressing}
               onClick={handleClose}
               className="flex-1 py-2.5 px-4 text-xs font-normal text-slate-800 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors cursor-pointer disabled:opacity-50"
             >
@@ -326,16 +377,18 @@ function ProductFormModalContent({
             </button>
             <button
               type="submit"
-              disabled={isSaving}
+              disabled={isSaving || isCompressing}
               className="flex-1 py-2.5 px-4 text-xs font-normal text-white bg-sky-600 hover:bg-sky-700 rounded-md transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
               <FiUpload className="w-3.5 h-3.5" />
               <span>
-                {isSaving
-                  ? 'Menyimpan...'
-                  : isEdit
-                    ? 'Simpan Perubahan'
-                    : 'Tambahkan Produk'}
+                {isCompressing
+                  ? 'Memproses foto...'
+                  : isSaving
+                    ? 'Menyimpan...'
+                    : isEdit
+                      ? 'Simpan Perubahan'
+                      : 'Tambahkan Produk'}
               </span>
             </button>
           </div>
